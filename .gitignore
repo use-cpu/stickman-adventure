@@ -1,0 +1,45 @@
+# ===== 后端 (SpringBoot / Maven) =====
+backend/target/
+backend/*.iml
+backend/.idea/
+backend/*.log
+
+# ===== 前端 (Vue / Vite) =====
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.vite/
+frontend/coverage/
+
+# ===== 日志 =====
+*.log
+logs/
+
+# ===== 系统 / IDE =====
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# ===== Maven =====
+.mvn/
+mvnw
+mvnw.cmd
+
+# ===== 临时文件 =====
+*.tmp
+*.bak
+*.swp
+*~
+cp.txt
+
+# ===== TRAE 内部文件 =====
+.trae-html-share-packages/
+
+# ===== 环境配置 (含敏感信息, 按需提交) =====
+.env
+.env.local

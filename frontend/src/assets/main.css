@@ -1,0 +1,237 @@
+/* 火柴人探险 - 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #409eff;
+  --bg-dark: #1e2a3a;
+  --bg-panel: #2c3e50;
+  --text-light: #ecf0f1;
+  --accent: #e74c3c;
+  --gold: #f1c40f;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #ecf0f1;
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 通用面板 */
+.panel {
+  background: rgba(44, 62, 80, 0.85);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.title {
+  text-align: center;
+  color: var(--gold);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 顶部导航栏 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 2px solid var(--primary);
+}
+
+.navbar .brand {
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--gold);
+}
+
+.navbar .actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 地图网格 */
+.map-grid {
+  display: grid;
+  gap: 2px;
+  background: #0d1b2a;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.map-cell {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border-radius: 4px;
+  background: #1b263b;
+  transition: all 0.2s;
+}
+
+.map-cell.fog {
+  background: #050a14;
+  color: transparent;
+}
+
+.map-cell.empty { background: #2d4059; }
+.map-cell.wall { background: #4a3520; }
+.map-cell.player {
+  background: #3498db;
+  box-shadow: 0 0 12px #3498db;
+  animation: pulse 1.5s infinite;
+}
+.map-cell.monster { background: #6b2c2c; }
+.map-cell.treasure { background: #7d5a1a; }
+.map-cell.boss { background: #4a1a4a; box-shadow: 0 0 10px #8e44ad; }
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* 战斗界面 */
+.battle-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.fighter {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  min-width: 220px;
+}
+
+.fighter .emoji {
+  font-size: 64px;
+  animation: bob 2s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.hp-bar {
+  width: 100%;
+  height: 18px;
+  background: #1a1a1a;
+  border-radius: 9px;
+  overflow: hidden;
+  margin-top: 8px;
+  position: relative;
+}
+
+.hp-bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e74c3c, #2ecc71);
+  transition: width 0.4s;
+}
+
+.hp-bar .text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.battle-log {
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: 'Consolas', monospace;
+  white-space: pre-wrap;
+}
+
+.action-btn {
+  padding: 10px 24px;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  transition: transform 0.1s, filter 0.2s;
+}
+
+.action-btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.action-btn.attack { background: #e74c3c; }
+.action-btn.skill { background: #9b59b6; }
+.action-btn.defend { background: #3498db; }
+.action-btn.flee { background: #7f8c8d; }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: filter 0.2s;
+}
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-danger { background: var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:6px; }
+.btn-success { background: #27ae60; color:#fff; border:none; padding:8px 16px; border-radius:6px; }
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+table.data-table th, table.data-table td {
+  border: 1px solid #3a4a5a;
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 13px;
+}
+table.data-table th {
+  background: #1a2a3a;
+  color: var(--gold);
+}
+table.data-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+
+/* 覆盖 Element Plus 深色适配 */
+.el-input__wrapper, .el-select__wrapper, .el-textarea__inner {
+  background: #1a2a3a !important;
+  box-shadow: 0 0 0 1px #3a4a5a inset !important;
+}
+.el-input__inner, .el-textarea__inner { color: #ecf0f1 !important; }
+.el-form-item__label { color: #bdc3c7 !important; }
+.el-dialog { background: #1e2a3a !important; border-radius: 10px; }
+.el-dialog__title, .el-dialog__body { color: #ecf0f1 !important; }
+.el-pagination { color: #bdc3c7; }
+.el-table { background: transparent !important; color: #ecf0f1 !important; }
+.el-table tr, .el-table td, .el-table th.el-table__cell { background: transparent !important; color: #ecf0f1 !important; border-color: #3a4a5a !important; }
+.el-table--border, .el-table--border .el-table__cell { border-color: #3a4a5a !important; }
