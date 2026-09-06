@@ -61,6 +61,13 @@ export const characterApi = {
   allocate: (saveId, attr) => http.post(`/character/save/${saveId}/allocate`, null, { params: { attr } })
 }
 
+// 商店
+export const shopApi = {
+  items: (saveId) => http.get('/shop/items', { params: { saveId } }),
+  inventory: (saveId) => http.get('/shop/inventory', { params: { saveId } }),
+  buy: (saveId, itemId) => http.post('/shop/buy', null, { params: { saveId, itemId } })
+}
+
 // 地图
 export const mapApi = {
   get: (saveId) => http.get(`/map/save/${saveId}`),

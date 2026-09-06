@@ -35,6 +35,7 @@ CREATE TABLE `game_save` (
   `player_y`        INT         NOT NULL DEFAULT 0  COMMENT '玩家在地图上的Y坐标',
   `map_seed`        BIGINT      NOT NULL DEFAULT 0  COMMENT '地图随机种子',
   `explored_tiles`  TEXT                 COMMENT '已探索格子的JSON数组',
+  `defeated_monsters` TEXT               COMMENT '已击败小怪的JSON: {"x_y": 击败时间戳}',
   `is_finished`     TINYINT     NOT NULL DEFAULT 0  COMMENT '是否通关 0否 1是',
   `create_time`     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time`     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -61,6 +62,7 @@ CREATE TABLE `game_character` (
   `exp_to_next`    INT        NOT NULL DEFAULT 100 COMMENT '升级所需经验',
   `gold`           INT        NOT NULL DEFAULT 0   COMMENT '金币',
   `skill_points`   INT        NOT NULL DEFAULT 0   COMMENT '技能点',
+  `skill_bonus`    INT        NOT NULL DEFAULT 0   COMMENT '技能伤害加成',
   `create_time`    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time`    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -148,6 +150,36 @@ CREATE TABLE `user_log` (
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户操作日志';
 
+-- ----------------------------
+-- 8. 商店商品表
+-- ----------------------------
+CREATE TABLE `shop_item` (
+  `id`          BIGINT       NOT NULL AUTO_INCREMENT,
+  `name`        VARCHAR(50)  NOT NULL COMMENT '商品名',
+  `category`    VARCHAR(20)  NOT NULL COMMENT '分类: WEAPON/ARMOR/BOOTS/ACCESSORY/POTION',
+  `price`       INT          NOT NULL DEFAULT 0 COMMENT '价格(金币)',
+  `icon`        VARCHAR(10)           COMMENT '图标',
+  `description` VARCHAR(200)          COMMENT '描述',
+  `stat_type`   VARCHAR(20)  NOT NULL COMMENT '属性: ATTACK/DEFENSE/SPEED/MAX_HP/MAX_MP/HP/MP',
+  `stat_value`  INT          NOT NULL DEFAULT 0 COMMENT '属性数值',
+  `is_unique`   TINYINT      NOT NULL DEFAULT 0 COMMENT '是否唯一(只能买一次)',
+  `sort_order`  INT          NOT NULL DEFAULT 0,
+  `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商店商品';
+
+-- ----------------------------
+-- 9. 角色已购买商品表
+-- ----------------------------
+CREATE TABLE `character_item` (
+  `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+  `save_id`     BIGINT   NOT NULL COMMENT '存档ID',
+  `item_id`     BIGINT   NOT NULL COMMENT '商品ID',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_save_item` (`save_id`, `item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色已购买商品';
+
 -- ============================================================
 -- 初始数据
 -- ============================================================
@@ -176,3 +208,23 @@ INSERT INTO `boss` (`name`,`level`,`hp`,`max_hp`,`attack`,`defense`,`speed`,`exp
 ('火焰领主',2,500,500,38,18,15,250,180,'烈焰风暴',60,50,'#e67e22','🔥'),
 ('冰霜女皇',3,800,800,52,25,18,400,300,'绝对零度',90,40,'#3498db','❄️'),
 ('暗影君王',4,1200,1200,70,35,20,700,500,'虚空吞噬',130,30,'#8e44ad','👑');
+
+-- 商店商品
+INSERT INTO `shop_item` (`name`,`category`,`price`,`icon`,`description`,`stat_type`,`stat_value`,`is_unique`,`sort_order`) VALUES
+('铁剑','WEAPON',50,'⚔️','锋利的铁剑, 攻击+5','ATTACK',5,1,1),
+('钢剑','WEAPON',150,'🗡️','精钢打造, 攻击+12','ATTACK',12,1,2),
+('烈焰之刃','WEAPON',400,'🔥','附魔烈焰, 攻击+25','ATTACK',25,1,3),
+('皮甲','ARMOR',60,'🥋','轻便皮甲, 防御+4','DEFENSE',4,1,4),
+('锁子甲','ARMOR',180,'🛡️','坚固锁甲, 防御+10','DEFENSE',10,1,5),
+('龙鳞铠','ARMOR',450,'🐉','龙鳞锻造, 防御+20','DEFENSE',20,1,6),
+('疾风靴','BOOTS',80,'👟','风之靴, 速度+5','SPEED',5,1,7),
+('风行之靴','BOOTS',220,'🥾','风行加持, 速度+12','SPEED',12,1,8),
+('生命护符','ACCESSORY',100,'❤️','生命护符, 最大生命+40','MAX_HP',40,1,9),
+('魔力项链','ACCESSORY',120,'💎','魔力项链, 最大魔法+25','MAX_MP',25,1,10),
+('小型生命药水','POTION',20,'🧪','恢复50点生命值','HP',50,0,11),
+('大型生命药水','POTION',60,'🍷','恢复150点生命值','HP',150,0,12),
+('魔法药水','POTION',30,'🔮','恢复40点魔法值','MP',40,0,13),
+('大型魔法药水','POTION',80,'🧴','恢复100点魔法值','MP',100,0,14),
+('初级技能书','SKILL',100,'📖','技能伤害+5','SKILL_DAMAGE',5,1,15),
+('中级技能书','SKILL',250,'📚','技能伤害+15','SKILL_DAMAGE',15,1,16),
+('高级技能书','SKILL',500,'📕','技能伤害+30','SKILL_DAMAGE',30,1,17);

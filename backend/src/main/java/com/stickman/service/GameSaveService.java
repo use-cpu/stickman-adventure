@@ -90,6 +90,7 @@ public class GameSaveService {
         ch.setExpToNext(100);
         ch.setGold(0);
         ch.setSkillPoints(0);
+        ch.setSkillBonus(0);
         characterMapper.insert(ch);
 
         return save;

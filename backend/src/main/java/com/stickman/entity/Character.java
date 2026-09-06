@@ -47,6 +47,9 @@ public class Character {
 
     private Integer skillPoints;
 
+    /** 技能伤害加成 (通过技能书获得) */
+    private Integer skillBonus;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;

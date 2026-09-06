@@ -36,6 +36,7 @@ public class CombatService {
     private final MonsterService monsterService;
     private final BossService bossService;
     private final LogService logService;
+    private final MapService mapService;
 
     /**
      * 开始一场战斗
@@ -144,6 +145,11 @@ public class CombatService {
                     result.put("expGained", expGain);
                     result.put("goldGained", goldGain);
 
+                    // 普通怪击败后记录位置, 1分钟内该格显示为空地 (Boss 不记录, 击败后进入下一关)
+                    if (!Constants.BATTLE_BOSS.equals(session.getBattleType())) {
+                        mapService.recordMonsterDefeat(saveId);
+                    }
+
                     // 击败Boss通关: 进入下一关
                     if (Constants.BATTLE_BOSS.equals(session.getBattleType())) {
                         save.setCurrentLevel(save.getCurrentLevel() + 1);
@@ -248,7 +254,7 @@ public class CombatService {
         c.setDefense(ch.getDefense());
         c.setSpeed(ch.getSpeed());
         c.setSkillName("重击");
-        c.setSkillDamage(ch.getAttack() + 10);
+        c.setSkillDamage(ch.getAttack() + 10 + (ch.getSkillBonus() == null ? 0 : ch.getSkillBonus()));
         c.setSkillMpCost(10);
         return c;
     }

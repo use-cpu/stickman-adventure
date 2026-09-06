@@ -58,6 +58,9 @@ public class GameMapGenerator {
         int treasureCount = 2 + level / 2;
         placeRandomTile(map, rng, treasureCount, Constants.TILE_TREASURE, 0, 0);
 
+        // 商店 (每层1个)
+        placeRandomTile(map, rng, 1, Constants.TILE_SHOP, 0, 0);
+
         // Boss 放在右下角区域
         map.tiles[map.size - 1][map.size - 1] = Constants.TILE_BOSS;
 

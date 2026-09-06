@@ -31,6 +31,9 @@ public class GameSave {
 
     private String exploredTiles;
 
+    /** 已击败小怪: {"x_y": 击败时间戳}, 超过刷新时间后自动移除 */
+    private String defeatedMonsters;
+
     private Integer isFinished;
 
     private LocalDateTime createTime;

@@ -31,6 +31,7 @@ public class Constants {
     public static final int TILE_BOSS = 3;          // Boss
     public static final int TILE_EXIT = 4;          // 出口
     public static final int TILE_WALL = 5;          // 墙壁
+    public static final int TILE_SHOP = 6;          // 商店
 
     /** 上下文键 */
     public static final String CTX_USER_ID = "userId";
