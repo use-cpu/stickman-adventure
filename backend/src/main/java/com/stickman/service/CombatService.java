@@ -70,11 +70,16 @@ public class CombatService {
             if (monsterId != null) {
                 monster = monsterService.getById(monsterId);
             } else {
-                // 根据关卡随机挑一个普通怪
-                monster = monsterService.list(Constants.MONSTER_NORMAL).stream()
+                // 根据关卡挑普通怪: 优先同档位关卡(±1级), 没有则回退到任意普通怪
+                // 这样管理员删除部分怪物后, 已生成地图仍可正常遇敌, 不会卡死玩家
+                java.util.List<Monster> pool = monsterService.list(Constants.MONSTER_NORMAL);
+                monster = pool.stream()
                         .filter(m -> Math.abs(m.getLevel() - save.getCurrentLevel()) <= 1)
                         .findFirst()
-                        .orElseThrow(() -> new BusinessException("没有可用怪物"));
+                        .orElse(pool.isEmpty() ? null : pool.get(0));
+                if (monster == null) {
+                    throw new BusinessException("没有可用怪物, 请管理员在「怪物配置」中添加普通怪");
+                }
             }
             enemyId = monster.getId();
             buildEnemyFromMonster(enemy, monster);
@@ -156,6 +161,12 @@ public class CombatService {
                         // 回满血蓝
                         ch.setHp(ch.getMaxHp());
                         ch.setMp(ch.getMaxMp());
+                        // 新一层从起点重新探索: 清空迷雾记录(每层初始均为迷雾,需移动解锁),
+                        // 角色回到起点 (0,0), 并清空上一关的小怪击败记录
+                        save.setExploredTiles("[]");
+                        save.setPlayerX(0);
+                        save.setPlayerY(0);
+                        save.setDefeatedMonsters("{}");
                     }
                 } else if (Constants.RESULT_LOSE.equals(resultType)) {
                     // 失败: 角色复活,扣一半金币,血量回满(在起点)

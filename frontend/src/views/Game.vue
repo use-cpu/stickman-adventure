@@ -154,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import NavBar from '../components/NavBar.vue'
@@ -380,6 +380,22 @@ const alloc = async (attr) => {
 
 const onCellClick = () => {}
 
+// 键盘移动: 方向键 + WASD
+const keyDirMap = {
+  ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT',
+  w: 'UP', s: 'DOWN', a: 'LEFT', d: 'RIGHT',
+  W: 'UP', S: 'DOWN', A: 'LEFT', D: 'RIGHT'
+}
+const handleKeydown = (e) => {
+  if (inBattle.value || showShop.value) return
+  const tag = (e.target?.tagName || '').toLowerCase()
+  if (tag === 'input' || tag === 'textarea') return
+  const dir = keyDirMap[e.key]
+  if (!dir) return
+  e.preventDefault()
+  move(dir)
+}
+
 onMounted(async () => {
   // 进入游戏页时, 检查后端是否有残留的战斗会话(刷新/异常退出导致), 自动清理
   try {
@@ -389,6 +405,11 @@ onMounted(async () => {
     }
   } catch (e) { /* 忽略, 继续加载地图 */ }
   await loadData()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
