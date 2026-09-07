@@ -1,12 +1,15 @@
 # ============================================================
-# Stickman Adventure - 镜像自动构建并推到 Sealos 内置仓库
+# Stickman Adventure - 镜像自动构建并推到 Docker Hub
 # ============================================================
 # 需要在 GitHub 仓库 Settings → Secrets and variables → Actions
-# 添加以下 Secrets:
-#   SEALOS_REGISTRY   镜像仓库地址(不含路径),如 abc123.cloud.sealos.io
-#   SEALOS_USERNAME   镜像仓库用户名(通常同 Sealos 账号)
-#   SEALOS_PASSWORD   镜像仓库密码或访问令牌
-# 添加完再 push 一次代码,即可触发构建
+# 添加以下 2 个 Secrets:
+#   DOCKERHUB_USERNAME   你的 Docker Hub 用户名,如 usecpu
+#   DOCKERHUB_TOKEN      Docker Hub Access Token
+#                       (在 hub.docker.com → Account Settings → Security 生成,
+#                        只给 Read/Write/Delete 权限即可,别用登录密码)
+# 添加完 push 一次代码或手动 Run workflow,即可触发构建并推到:
+#   docker.io/<DOCKERHUB_USERNAME>/stickman-backend:latest
+#   docker.io/<DOCKERHUB_USERNAME>/stickman-frontend:latest
 # ============================================================
 name: build-and-push
 
@@ -24,22 +27,21 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Sealos registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.SEALOS_REGISTRY }}
-          username: ${{ secrets.SEALOS_USERNAME }}
-          password: ${{ secrets.SEALOS_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          # 镜像路径 = <registry>/<username>/stickman-backend:tag
+          # 镜像路径 = docker.io/<username>/stickman-backend:tag
           tags: |
-            ${{ secrets.SEALOS_REGISTRY }}/${{ secrets.SEALOS_USERNAME }}/stickman-backend:latest
-            ${{ secrets.SEALOS_REGISTRY }}/${{ secrets.SEALOS_USERNAME }}/stickman-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-backend:${{ github.sha }}
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -49,12 +51,11 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Sealos registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.SEALOS_REGISTRY }}
-          username: ${{ secrets.SEALOS_USERNAME }}
-          password: ${{ secrets.SEALOS_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
@@ -62,5 +63,5 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.SEALOS_REGISTRY }}/${{ secrets.SEALOS_USERNAME }}/stickman-frontend:latest
-            ${{ secrets.SEALOS_REGISTRY }}/${{ secrets.SEALOS_USERNAME }}/stickman-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-frontend:${{ github.sha }}
