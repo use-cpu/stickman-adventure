@@ -1,0 +1,170 @@
+# ============================================================
+# Stickman Adventure - Kubernetes 部署清单
+# ============================================================
+# 使用前:把所有 <REGISTRY> 占位符替换为你的镜像仓库地址
+#   Sealos Cloud 内置仓库格式通常为: <账号ID>.cloud.sealos.io
+#   例如: abc123.cloud.sealos.io/stickman-backend:v1
+# Sealos Cloud 控制台「应用部署 / App Launchpad」可以直接
+# 粘贴本文件中的 Deployment/Service 表单内容,或用 kubectl apply。
+# ============================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stickman
+  labels:
+    app.kubernetes.io/part-of: stickman-adventure
+---
+# 数据库密码 + JWT secret (生产请改密码,不要用示例值)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stickman-secrets
+  namespace: stickman
+type: Opaque
+stringData:
+  DB_PASSWORD: "ChangeMe_Str0ng!"
+  JWT_SECRET: "change-this-to-a-long-random-string-in-prod"
+---
+# ---------- 后端 ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stickman-backend
+  namespace: stickman
+  labels:
+    app: stickman-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stickman-backend
+  template:
+    metadata:
+      labels:
+        app: stickman-backend
+    spec:
+      containers:
+        - name: backend
+          # 替换为你的镜像地址
+          image: <REGISTRY>/stickman-backend:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: "stickman-mysql.stickman.svc.cluster.local"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "stickman_adventure"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: stickman-secrets
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: stickman-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"
+          # 项目未引入 actuator,用 TCP 探针只检查端口是否监听
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stickman-backend
+  namespace: stickman
+spec:
+  selector:
+    app: stickman-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# ---------- 前端 (nginx) ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stickman-frontend
+  namespace: stickman
+  labels:
+    app: stickman-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stickman-frontend
+  template:
+    metadata:
+      labels:
+        app: stickman-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: <REGISTRY>/stickman-frontend:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stickman-frontend
+  namespace: stickman
+spec:
+  selector:
+    app: stickman-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+# ---------- 对外暴露 ----------
+# Sealos Cloud 控制台部署 Service 时会自动分配 xxx.cloud.sealos.io 域名,
+# 通常不需要自己创建 Ingress。下面这段是为自建集群或自定义域名保留的兼容方案。
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stickman-ingress
+  namespace: stickman
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: stickman.local  # 替换为你的域名;Sealos 自动分配的可删除本 Ingress
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stickman-frontend
+                port:
+                  number: 80
