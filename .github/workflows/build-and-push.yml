@@ -1,15 +1,14 @@
 # ============================================================
-# Stickman Adventure - 镜像自动构建并推到 Docker Hub
+# Stickman Adventure - 镜像自动构建并推到 GitHub Container Registry
 # ============================================================
-# 需要在 GitHub 仓库 Settings → Secrets and variables → Actions
-# 添加以下 2 个 Secrets:
-#   DOCKERHUB_USERNAME   你的 Docker Hub 用户名,如 usecpu
-#   DOCKERHUB_TOKEN      Docker Hub Access Token
-#                       (在 hub.docker.com → Account Settings → Security 生成,
-#                        只给 Read/Write/Delete 权限即可,别用登录密码)
-# 添加完 push 一次代码或手动 Run workflow,即可触发构建并推到:
-#   docker.io/<DOCKERHUB_USERNAME>/stickman-backend:latest
-#   docker.io/<DOCKERHUB_USERNAME>/stickman-frontend:latest
+# 用内置 GITHUB_TOKEN,不需要任何 Secret,不需要 Docker Hub 账号
+# 镜像地址:
+#   ghcr.io/use-cpu/stickman-backend:latest
+#   ghcr.io/use-cpu/stickman-frontend:latest
+# 首次 push 后,镜像默认是 private,需要在 GitHub Packages
+# 把它改成 public 才能让 Sealos 不带凭证拉取
+#   https://github.com/users/use-cpu/packages/container/stickman-backend/settings
+#   https://github.com/users/use-cpu/packages/container/stickman-frontend/settings
 # ============================================================
 name: build-and-push
 
@@ -17,6 +16,10 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-backend:
@@ -27,21 +30,21 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          # 镜像路径 = docker.io/<username>/stickman-backend:tag
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-backend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-backend:${{ github.sha }}
+            ghcr.io/use-cpu/stickman-backend:latest
+            ghcr.io/use-cpu/stickman-backend:${{ github.sha }}
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -51,11 +54,12 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
@@ -63,5 +67,5 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/stickman-frontend:${{ github.sha }}
+            ghcr.io/use-cpu/stickman-frontend:latest
+            ghcr.io/use-cpu/stickman-frontend:${{ github.sha }}
